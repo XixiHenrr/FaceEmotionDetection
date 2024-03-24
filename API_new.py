@@ -57,13 +57,15 @@ async def video_to_frames(video_bytes, timestamps: List[List[float]]):
 
 @app.post("/recognize/")
 async def recognize_video(file: UploadFile = File(...), chunks_json: str = Form(...)):
+    print(f"Received chunks_json: {chunks_json}")  # Debugging line
     if not file.content_type.startswith("video/"):
         return JSONResponse(content={"error": "This API supports only video files."}, status_code=400)
 
     try:
         chunks_data = json.loads(chunks_json)
         timestamps = [chunk["timestamp"] for chunk in chunks_data["chunks"]]
-    except (json.JSONDecodeError, KeyError):
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"Error parsing JSON: {e}")  # Debugging line
         return JSONResponse(content={"error": "Invalid or missing JSON data."}, status_code=400)
 
     video_bytes = await file.read()
